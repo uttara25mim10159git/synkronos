@@ -1,4 +1,4 @@
-# synkronos
+# synkronos by ÆGIS
  Overview
 
 Synkronos is a production-style web application designed to solve one of the most overlooked problems in student projects — unreliable teammates.
