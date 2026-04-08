@@ -1,0 +1,1572 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Synkronos • Mission Console</title>
+    <style>
+      :root{
+        --bg0:#070A10;
+        --bg1:#0B1220;
+        --panel:#0E1830;
+        --panel2:#101F3C;
+        --stroke:rgba(255,255,255,.10);
+        --muted:rgba(255,255,255,.65);
+        --text:rgba(255,255,255,.92);
+        --good:#39D98A;
+        --warn:#F7B955;
+        --bad:#FF5A7A;
+        --accent:#7C5CFF;
+        --accent2:#21D4FD;
+        --shadow: 0 18px 60px rgba(0,0,0,.55);
+        --radius: 18px;
+        --radius2: 14px;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+
+      *{ box-sizing:border-box; }
+      html,body{ height:100%; }
+      body{
+        margin:0;
+        font-family: var(--sans);
+        color: var(--text);
+        background:
+          radial-gradient(1200px 900px at 20% 10%, rgba(124,92,255,.22), transparent 60%),
+          radial-gradient(1000px 800px at 85% 15%, rgba(33,212,253,.14), transparent 55%),
+          radial-gradient(1000px 900px at 35% 90%, rgba(57,217,138,.10), transparent 60%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+        overflow:hidden;
+      }
+
+      .app{
+        height:100%;
+        display:grid;
+        grid-template-rows: 64px 1fr;
+      }
+
+      header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--stroke);
+        background: rgba(8,12,20,.65);
+        backdrop-filter: blur(10px);
+      }
+
+      .brand{
+        display:flex;
+        gap:12px;
+        align-items:center;
+        min-width: 260px;
+      }
+      .logo{
+        width:34px;height:34px;border-radius:11px;
+        background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(33,212,253,.65));
+        box-shadow: 0 12px 30px rgba(124,92,255,.20);
+        position:relative;
+        overflow:hidden;
+      }
+      .logo .inf{
+        position:absolute;
+        left:6px;
+        top:6px;
+        font-size:20px;
+        line-height:1;
+        font-weight:900;
+        color: rgba(255,255,255,.94);
+        text-shadow: 0 0 10px rgba(255,255,255,.35), 0 0 20px rgba(124,92,255,.35);
+        z-index:2;
+      }
+      .logo .inf-trail{
+        position:absolute;
+        left:7px;
+        top:8px;
+        width:24px;
+        height:18px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(255,255,255,.62), rgba(255,255,255,0));
+        filter: blur(1.2px);
+        z-index:1;
+        transform-origin:left center;
+        animation: infFadeRight 1.6s ease-in-out infinite;
+      }
+      .logo::after{
+        content:"";
+        position:absolute;inset:-40%;
+        background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.40), transparent 55%);
+        transform: rotate(18deg);
+      }
+      @keyframes infFadeRight{
+        0%{
+          opacity:.95;
+          transform: translateX(0) scaleX(.35);
+        }
+        60%{
+          opacity:.36;
+          transform: translateX(8px) scaleX(1);
+        }
+        100%{
+          opacity:0;
+          transform: translateX(15px) scaleX(1.2);
+        }
+      }
+
+      .brand h1{
+        font-size:14px;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        margin:0;
+      }
+      .brand .sub{
+        font-family: var(--mono);
+        color: var(--muted);
+        font-size:12px;
+        margin-top:2px;
+      }
+
+      .topnav{
+        display:flex;
+        gap:8px;
+        align-items:center;
+      }
+
+      .pill{
+        border: 1px solid var(--stroke);
+        background: rgba(255,255,255,.04);
+        color: var(--muted);
+        padding: 8px 10px;
+        border-radius: 999px;
+        font-size:12px;
+        font-family: var(--mono);
+      }
+
+      .navbtn{
+        border: 1px solid var(--stroke);
+        background: rgba(255,255,255,.05);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor:pointer;
+        transition: transform .12s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+      }
+      .navbtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); }
+      .navbtn:active{ transform: translateY(0px) scale(.99); }
+      .navbtn[disabled]{ opacity:.45; cursor:not-allowed; transform:none; }
+      .navbtn.primary{
+        border-color: rgba(124,92,255,.55);
+        background: linear-gradient(135deg, rgba(124,92,255,.90), rgba(33,212,253,.35));
+        box-shadow: 0 14px 50px rgba(124,92,255,.18);
+      }
+
+      main{
+        height:100%;
+        display:grid;
+        place-items:stretch;
+        padding: 18px;
+      }
+
+      .shell{
+        height: 100%;
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+        box-shadow: var(--shadow);
+        overflow:hidden;
+        position:relative;
+      }
+
+      .screen{
+        position:absolute;
+        inset:0;
+        padding: 18px;
+        display:none;
+      }
+      .screen.active{ display:block; }
+
+      /* transition states */
+      .screen.stage-enter{ opacity:0; transform: translateY(10px); filter: blur(1px); }
+      .screen.stage-enter-active{ opacity:1; transform: translateY(0); filter: blur(0); transition: opacity .26s ease, transform .26s ease, filter .26s ease; }
+      .screen.stage-exit{ opacity:1; transform: translateY(0); filter: blur(0); }
+      .screen.stage-exit-active{ opacity:0; transform: translateY(-8px); filter: blur(1px); transition: opacity .20s ease, transform .20s ease, filter .20s ease; }
+
+      .grid{
+        height:100%;
+        display:grid;
+        grid-template-columns: 1.2fr .8fr;
+        gap: 14px;
+      }
+
+      .panel{
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius2);
+        background: linear-gradient(180deg, rgba(14,24,48,.88), rgba(14,24,48,.64));
+        box-shadow: 0 10px 30px rgba(0,0,0,.28);
+        overflow:hidden;
+      }
+      .panel .hd{
+        padding: 14px 14px 12px 14px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:12px;
+      }
+      .panel .hd h2{
+        margin:0;
+        font-size: 14px;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+      }
+      .panel .hd p{
+        margin:6px 0 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .panel .bd{ padding: 14px; }
+
+      .kpi-row{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+      .kpi{
+        border: 1px solid rgba(255,255,255,.08);
+        background: rgba(255,255,255,.03);
+        border-radius: 14px;
+        padding: 12px;
+        min-height: 70px;
+      }
+      .kpi .label{ color: var(--muted); font-size: 12px; font-family: var(--mono); }
+      .kpi .value{ margin-top: 8px; font-size: 18px; font-weight: 800; letter-spacing: .01em; }
+      .kpi .hint{ margin-top: 4px; color: rgba(255,255,255,.55); font-size: 12px; }
+
+      .callout{
+        border: 1px solid rgba(124,92,255,.35);
+        background: linear-gradient(135deg, rgba(124,92,255,.14), rgba(33,212,253,.08));
+        border-radius: 16px;
+        padding: 12px 12px;
+      }
+      .callout .title{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        font-weight: 800;
+      }
+      .callout .meta{ font-family: var(--mono); color: rgba(255,255,255,.70); font-size: 12px; }
+
+      .row{ display:flex; gap: 10px; align-items:center; flex-wrap:wrap; }
+      .stack{ display:flex; flex-direction:column; gap:10px; }
+
+      label{
+        display:block;
+        font-size:12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+        font-family: var(--mono);
+      }
+      select, input[type="text"]{
+        width:100%;
+        padding: 10px 11px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(0,0,0,.22);
+        color: var(--text);
+        outline:none;
+      }
+      select:focus, input[type="text"]:focus{ border-color: rgba(124,92,255,.55); box-shadow: 0 0 0 4px rgba(124,92,255,.12); }
+
+      .form-grid{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .divider{
+        height:1px;
+        background: rgba(255,255,255,.08);
+        margin: 12px 0;
+      }
+
+      .quiz{
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 16px;
+        background: rgba(255,255,255,.03);
+        overflow:hidden;
+      }
+      .quiz .qhd{
+        padding: 12px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 10px;
+      }
+      .quiz .qhd .prog{
+        font-family: var(--mono);
+        color: rgba(255,255,255,.70);
+        font-size: 12px;
+      }
+      .quiz .qbd{ padding: 12px; }
+      .qtext{ font-weight: 800; margin-bottom: 10px; }
+      .choices{ display:grid; gap: 8px; }
+      .choice{
+        border: 1px solid rgba(255,255,255,.10);
+        background: rgba(0,0,0,.18);
+        border-radius: 14px;
+        padding: 10px 10px;
+        display:flex;
+        gap:10px;
+        align-items:flex-start;
+        cursor:pointer;
+        transition: background .12s ease, border-color .12s ease, transform .12s ease;
+      }
+      .choice:hover{ background: rgba(255,255,255,.06); transform: translateY(-1px); }
+      .choice input{ margin-top: 2px; }
+      .choice.sel{ border-color: rgba(124,92,255,.55); background: rgba(124,92,255,.10); }
+
+      .table{
+        width:100%;
+        border-collapse: collapse;
+        overflow:hidden;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.10);
+        background: rgba(0,0,0,.14);
+      }
+      .table th, .table td{
+        padding: 10px 10px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        text-align:left;
+        font-size: 13px;
+      }
+      .table th{
+        color: rgba(255,255,255,.70);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing:.04em;
+        text-transform:uppercase;
+      }
+      .table tr:last-child td{ border-bottom:none; }
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,.10);
+        background: rgba(255,255,255,.04);
+        font-size: 12px;
+        color: rgba(255,255,255,.78);
+        font-family: var(--mono);
+      }
+      .badge.good{ border-color: rgba(57,217,138,.35); background: rgba(57,217,138,.10); }
+      .badge.warn{ border-color: rgba(247,185,85,.35); background: rgba(247,185,85,.10); }
+      .badge.bad{ border-color: rgba(255,90,122,.35); background: rgba(255,90,122,.10); }
+      .badge.rec{ border-color: rgba(124,92,255,.55); background: rgba(124,92,255,.12); color: rgba(255,255,255,.92); }
+
+      .rightcol{
+        height:100%;
+        display:grid;
+        grid-template-rows: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .footer-actions{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .hintline{
+        color: rgba(255,255,255,.62);
+        font-size: 12px;
+        font-family: var(--mono);
+      }
+
+      .toast{
+        position:absolute;
+        right: 14px;
+        bottom: 14px;
+        width: min(420px, calc(100% - 28px));
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(10,14,22,.86);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 22px 70px rgba(0,0,0,.55);
+        padding: 12px 12px;
+        display:none;
+      }
+      .toast.show{ display:block; animation: pop .18s ease; }
+      @keyframes pop{ from{ transform: translateY(8px); opacity: 0; } to{ transform: translateY(0); opacity: 1; } }
+      .toast .t-title{ font-weight: 900; margin:0; }
+      .toast .t-body{ margin:6px 0 0 0; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.35; }
+
+      @media (max-width: 980px){
+        body{ overflow:auto; }
+        .app{ grid-template-rows: auto 1fr; }
+        main{ padding: 12px; }
+        .grid{ grid-template-columns: 1fr; }
+        .rightcol{ grid-template-rows: auto auto; }
+        .kpi-row{ grid-template-columns: 1fr 1fr; }
+        .screen{ position:relative; }
+        .shell{ min-height: calc(100vh - 110px); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <span class="inf">∞</span>
+            <span class="inf-trail"></span>
+          </div>
+          <div>
+            <h1>Synkronos Mission Console</h1>
+            <div class="sub" id="hdrSubtitle">Mode: Home • No active applicant</div>
+          </div>
+        </div>
+
+        <div class="topnav">
+          <span class="pill" id="hdrPill">SCREEN: HOME</span>
+          <button class="navbtn" id="navHome">Home</button>
+          <button class="navbtn" id="navApply">Apply</button>
+          <button class="navbtn" id="navDash">Dashboard</button>
+          <button class="navbtn" id="navQuest">Task</button>
+        </div>
+      </header>
+
+      <main>
+        <div class="shell" id="shell">
+          <!-- HOME -->
+          <section class="screen" id="screen-home" aria-label="Home Screen">
+            <div class="grid">
+              <div class="panel">
+                <div class="hd">
+                  <div>
+                    <h2>Home / Mission Panel</h2>
+                    <p>
+                      Welcome to Synkronos. This console simulates a real team intake workflow: application gating, skills
+                      quiz, decision engine, dashboard evaluation, and task commitment.
+                    </p>
+                  </div>
+                  <div class="stack" style="align-items:flex-end;">
+                    <span class="badge rec">APP MODE</span>
+                    <span class="badge">v2 • multi-screen</span>
+                  </div>
+                </div>
+                <div class="bd">
+                  <div class="kpi-row" id="homeKpis"></div>
+                  <div class="divider"></div>
+                  <div class="callout">
+                    <div class="title">
+                      <div>Flow (Mandatory)</div>
+                      <div class="meta" id="flowMeta">Home → Apply → Quiz → Dashboard → Task</div>
+                    </div>
+                    <div style="margin-top:10px; color: rgba(255,255,255,.72); line-height:1.5; font-size: 13px;">
+                      You can create a new applicant via the Application Screen. The quiz only appears after clicking
+                      <b>Apply</b>. Once submitted, the system evaluates all applicants and highlights a
+                      <b>Recommended</b> candidate.
+                    </div>
+                    <div class="footer-actions">
+                      <div class="hintline" id="homeHint">No applicant created yet.</div>
+                      <div class="row">
+                        <button class="navbtn" id="homeGoApply">Go to Application</button>
+                        <button class="navbtn primary" id="homeApplyNow">Apply</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rightcol">
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>System Status</h2>
+                      <p>Central state drives all screens.</p>
+                    </div>
+                    <span class="badge" id="sysBadge">STATE: READY</span>
+                  </div>
+                  <div class="bd" id="systemStatus"></div>
+                </div>
+
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>Mission Snapshot</h2>
+                      <p>Decision engine considers quiz, reliability, commits, task performance.</p>
+                    </div>
+                    <span class="badge" id="engineBadge">ENGINE: IDLE</span>
+                  </div>
+                  <div class="bd" id="engineSnapshot"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- APPLY -->
+          <section class="screen" id="screen-apply" aria-label="Application Screen">
+            <div class="grid">
+              <div class="panel">
+                <div class="hd">
+                  <div>
+                    <h2>Application Screen</h2>
+                    <p>Select role & constraints. Quiz appears only after clicking <b>Apply</b>.</p>
+                  </div>
+                  <span class="badge" id="applyGateBadge">GATE: QUIZ LOCKED</span>
+                </div>
+                <div class="bd">
+                  <div class="form-grid">
+                    <div>
+                      <label for="appName">Applicant handle</label>
+                      <input id="appName" type="text" placeholder="e.g. aurora-dev" autocomplete="off" />
+                    </div>
+                    <div>
+                      <label for="roleSel">Role selection</label>
+                      <select id="roleSel">
+                        <option value="Frontend">Frontend</option>
+                        <option value="Backend">Backend</option>
+                        <option value="ML">ML</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="availSel">Availability</label>
+                      <select id="availSel">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="expSel">Experience level</label>
+                      <select id="expSel">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate" selected>Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="divider"></div>
+
+                  <div class="row" style="justify-content:space-between;">
+                    <div class="hintline" id="applyHint">
+                      Click <b>Apply</b> to unlock the quiz.
+                    </div>
+                    <div class="row">
+                      <button class="navbtn" id="applyBackHome">Back</button>
+                      <button class="navbtn primary" id="unlockQuizBtn">Apply</button>
+                    </div>
+                  </div>
+
+                  <div style="height: 12px;"></div>
+
+                  <div id="quizBlock" style="display:none;">
+                    <div class="quiz">
+                      <div class="qhd">
+                        <div class="prog" id="quizProg">Quiz • 0/0</div>
+                        <span class="badge" id="quizStatusBadge">QUIZ: READY</span>
+                      </div>
+                      <div class="qbd" id="quizBody"></div>
+                    </div>
+
+                    <div class="footer-actions">
+                      <div class="hintline" id="quizHint">Answer all questions to submit.</div>
+                      <div class="row">
+                        <button class="navbtn" id="quizPrev">Prev</button>
+                        <button class="navbtn" id="quizNext">Next</button>
+                        <button class="navbtn primary" id="quizSubmit">Submit Application</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rightcol">
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>Live Preview</h2>
+                      <p>Applicant stats update as you configure.</p>
+                    </div>
+                    <span class="badge" id="previewBadge">PREVIEW</span>
+                  </div>
+                  <div class="bd" id="applyPreview"></div>
+                </div>
+
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>Rules</h2>
+                      <p>Quiz is mandatory before creation.</p>
+                    </div>
+                    <span class="badge warn">ENFORCED</span>
+                  </div>
+                  <div class="bd" id="applyRules"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- DASHBOARD -->
+          <section class="screen" id="screen-dash" aria-label="Dashboard Screen">
+            <div class="grid">
+              <div class="panel">
+                <div class="hd">
+                  <div>
+                    <h2>Control Panel (Dashboard)</h2>
+                    <p>Applicants are evaluated by the decision engine. Best candidate is flagged as <b>Recommended</b>.</p>
+                  </div>
+                  <span class="badge" id="dashEvalBadge">EVALUATION: READY</span>
+                </div>
+                <div class="bd">
+                  <div class="kpi-row" id="dashKpis"></div>
+                  <div class="divider"></div>
+                  <div style="overflow:auto; max-height: 52vh;">
+                    <table class="table" aria-label="Applicants table">
+                      <thead>
+                        <tr>
+                          <th>Applicant</th>
+                          <th>Role</th>
+                          <th>Quiz</th>
+                          <th>Reliability</th>
+                          <th>Commits</th>
+                          <th>Tasks</th>
+                          <th>Team Fit</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="applicantsTbody"></tbody>
+                    </table>
+                  </div>
+
+                  <div class="footer-actions">
+                    <div class="hintline" id="dashHint">Tip: click an applicant row to select them.</div>
+                    <div class="row">
+                      <button class="navbtn" id="dashBackApply">Back</button>
+                      <button class="navbtn" id="dashReeval">Re-evaluate</button>
+                      <button class="navbtn primary" id="dashGoTask">Go to Task</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rightcol">
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>Selected Applicant</h2>
+                      <p>Details and computed score breakdown.</p>
+                    </div>
+                    <span class="badge" id="selBadge">NONE</span>
+                  </div>
+                  <div class="bd" id="selectedDetails"></div>
+                </div>
+
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>Decision Engine</h2>
+                      <p>Weights: Quiz 45% • Reliability 25% • Commits 20% • Task 10%</p>
+                    </div>
+                    <span class="badge rec" id="recBadge">RECOMMENDATION</span>
+                  </div>
+                  <div class="bd" id="recommendationPanel"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- QUEST -->
+          <section class="screen" id="screen-quest" aria-label="Quest Screen">
+            <div class="grid">
+              <div class="panel">
+                <div class="hd">
+                  <div>
+                    <h2>Quest Panel (Task System)</h2>
+                    <p>Assign and commit to a task. Accepting switches status to <b>Committed</b>.</p>
+                  </div>
+                  <span class="badge" id="taskBadge">TASK: UNASSIGNED</span>
+                </div>
+                <div class="bd">
+                  <div class="callout" id="taskCard"></div>
+                  <div class="divider"></div>
+                  <div class="row" style="justify-content:space-between;">
+                    <div class="hintline" id="taskHint">Select a recommended applicant first.</div>
+                    <div class="row">
+                      <button class="navbtn" id="taskBackDash">Back</button>
+                      <button class="navbtn primary" id="acceptTaskBtn">Accept Task</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rightcol">
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>Commit Log</h2>
+                      <p>State changes are recorded here.</p>
+                    </div>
+                    <span class="badge" id="logBadge">LOG</span>
+                  </div>
+                  <div class="bd" id="commitLog" style="max-height: 44vh; overflow:auto;"></div>
+                </div>
+
+                <div class="panel">
+                  <div class="hd">
+                    <div>
+                      <h2>Task Metrics</h2>
+                      <p>Task status influences Team Fit Score.</p>
+                    </div>
+                    <span class="badge" id="metricBadge">METRICS</span>
+                  </div>
+                  <div class="bd" id="taskMetrics"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="toast" id="toast" role="status" aria-live="polite">
+            <p class="t-title" id="toastTitle">Updated</p>
+            <p class="t-body" id="toastBody">State changed.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+      function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+      function uid(){
+        return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
+      }
+      function fmtScore(n){ return Math.round(n); }
+      function nowStamp(){
+        const d = new Date();
+        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      }
+      function badgeForReliability(n){
+        if (n >= 82) return { cls: "good", label: "High" };
+        if (n >= 62) return { cls: "warn", label: "Medium" };
+        return { cls: "bad", label: "Low" };
+      }
+
+      const QUIZ = [
+        {
+          id: "q1",
+          text: "A teammate pushes a breaking change late Friday. What’s your best move?",
+          choices: [
+            { id: "a", text: "Revert immediately and open an incident note.", pts: 20 },
+            { id: "b", text: "Hotfix in production without informing anyone.", pts: 6 },
+            { id: "c", text: "Wait until Monday and hope users won’t notice.", pts: 2 },
+            { id: "d", text: "Blame them publicly in chat.", pts: 0 },
+          ],
+        },
+        {
+          id: "q2",
+          text: "You can’t finish a task on time. What do you do?",
+          choices: [
+            { id: "a", text: "Raise risk early, propose a smaller milestone, ask for help.", pts: 20 },
+            { id: "b", text: "Stay silent and miss the deadline.", pts: 4 },
+            { id: "c", text: "Ship an unreviewed patch and disappear.", pts: 6 },
+            { id: "d", text: "Stop working; it’s someone else’s problem.", pts: 0 },
+          ],
+        },
+        {
+          id: "q3",
+          text: "How do you prefer to validate a solution?",
+          choices: [
+            { id: "a", text: "Write tests + run a minimal reproducible demo.", pts: 20 },
+            { id: "b", text: "Manual testing only, no notes.", pts: 10 },
+            { id: "c", text: "Just trust intuition; tests slow you down.", pts: 2 },
+            { id: "d", text: "Skip validation.", pts: 0 },
+          ],
+        },
+        {
+          id: "q4",
+          text: "A code review comment disagrees with your approach. Your response?",
+          choices: [
+            { id: "a", text: "Clarify intent, accept or negotiate changes with evidence.", pts: 20 },
+            { id: "b", text: "Ignore it and merge anyway.", pts: 4 },
+            { id: "c", text: "Argue until they give up.", pts: 6 },
+            { id: "d", text: "Delete their comment.", pts: 0 },
+          ],
+        },
+        {
+          id: "q5",
+          text: "When requirements are unclear, you…",
+          choices: [
+            { id: "a", text: "Ask targeted questions and write a brief plan.", pts: 20 },
+            { id: "b", text: "Build whatever seems fun.", pts: 6 },
+            { id: "c", text: "Wait for someone to tell you exactly what to do.", pts: 8 },
+            { id: "d", text: "Do nothing.", pts: 0 },
+          ],
+        },
+      ];
+
+      const state = {
+        route: "home", // home | apply | dash | quest
+        flow: {
+          hasCreatedApplicant: false,
+        },
+        applicants: [],
+        selectedApplicantId: null,
+        applyDraft: {
+          handle: "",
+          role: "Frontend",
+          availability: "Medium",
+          experience: "Intermediate",
+        },
+        quiz: {
+          unlocked: false,
+          index: 0,
+          answers: {}, // { qid: choiceId }
+          completed: false,
+          score: 0,
+        },
+        task: {
+          status: "Unassigned", // Unassigned | Offered | Committed
+          assignedToApplicantId: null,
+          assignedTask: null,
+        },
+        system: {
+          recommendedApplicantId: null,
+          lastEvaluationAt: null,
+          log: [],
+        },
+      };
+
+      function logEvent(title, body){
+        state.system.log.unshift({ id: uid(), at: nowStamp(), title, body });
+      }
+
+      function reliabilityScore(availability, experience){
+        const availBase = ({ Low: 46, Medium: 70, High: 90 })[availability] ?? 60;
+        const expAdj = ({ Beginner: -6, Intermediate: 0, Advanced: 6 })[experience] ?? 0;
+        return clamp(availBase + expAdj, 35, 98);
+      }
+
+      function commitsEstimate(role, experience){
+        const r = Math.random();
+        const roleAdj = ({ Frontend: 1.0, Backend: 1.05, ML: 0.95 })[role] ?? 1.0;
+        const expBase = ({ Beginner: 18, Intermediate: 38, Advanced: 62 })[experience] ?? 30;
+        return clamp(Math.round((expBase + r * 18) * roleAdj), 6, 96);
+      }
+
+      function taskPerformanceScore(applicantId){
+        if (state.task.assignedToApplicantId !== applicantId) return 0;
+        if (state.task.status === "Committed") return 80;
+        return 0;
+      }
+
+      function teamFitScore(app){
+        const quiz = clamp(app.quizScore ?? 0, 0, 100);
+        const reliability = clamp(app.reliability ?? 0, 0, 100);
+        const commits = clamp(app.commits ?? 0, 0, 100);
+        const task = clamp(taskPerformanceScore(app.id), 0, 100);
+        return 0.45 * quiz + 0.25 * reliability + 0.20 * commits + 0.10 * task;
+      }
+
+      function evaluateApplicants(){
+        if (state.applicants.length === 0){
+          state.system.recommendedApplicantId = null;
+          state.system.lastEvaluationAt = new Date().toISOString();
+          return;
+        }
+        let best = null;
+        for (const a of state.applicants){
+          a.teamFit = teamFitScore(a);
+          if (!best || a.teamFit > best.teamFit) best = a;
+        }
+        state.system.recommendedApplicantId = best?.id ?? null;
+        state.system.lastEvaluationAt = new Date().toISOString();
+      }
+
+      function seedApplicants(){
+        const seeded = [
+          { handle: "atlas-stack", role: "Backend", availability: "High", experience: "Advanced", quizScore: 78 },
+          { handle: "neon-ui", role: "Frontend", availability: "Medium", experience: "Advanced", quizScore: 86 },
+          { handle: "tensor-nova", role: "ML", availability: "Low", experience: "Intermediate", quizScore: 72 },
+        ].map((x) => {
+          const id = uid();
+          const reliability = reliabilityScore(x.availability, x.experience);
+          const commits = commitsEstimate(x.role, x.experience, x.handle);
+          return {
+            id,
+            handle: x.handle,
+            role: x.role,
+            availability: x.availability,
+            experience: x.experience,
+            quizScore: x.quizScore,
+            reliability,
+            commits,
+            tasks: Math.round(Math.random() * 4),
+            createdAt: new Date().toISOString(),
+          };
+        });
+        state.applicants = seeded;
+        state.selectedApplicantId = seeded[0]?.id ?? null;
+        state.task.assignedTask = {
+          id: "QST-014",
+          title: "Ship mission-critical feature slice",
+          detail:
+            "Implement a small, end-to-end improvement: choose one bottleneck, define acceptance criteria, deliver with tests and a short rollout note.",
+          checklist: [
+            "Write a minimal plan with risks",
+            "Deliver a measurable change",
+            "Add tests or validation steps",
+            "Post a short summary (what/why/impact)",
+          ],
+        };
+        logEvent("Boot", "Seeded baseline applicants and loaded default quest.");
+        evaluateApplicants();
+      }
+
+      function setRoute(next){
+        if (next === state.route) return;
+        if (!state.flow.hasCreatedApplicant && (next === "dash" || next === "quest")){
+          toast("Flow locked", "Complete Apply → Quiz → Submit to unlock Dashboard and Task.");
+          next = "apply";
+        }
+        const leaving = $(`#screen-${state.route}`);
+        const from = state.route;
+        if (leaving){
+          // keep previous screen visible long enough to animate out
+          leaving.classList.add("active", "stage-exit");
+          leaving.classList.remove("stage-exit-active", "stage-enter", "stage-enter-active");
+        }
+        state.route = next;
+        logEvent("Navigation", `${from.toUpperCase()} → ${next.toUpperCase()}`);
+        render();
+        animateTo(next, leaving);
+      }
+
+      function animateTo(route, leavingEl){
+        const nextEl = $(`#screen-${route}`);
+        const leaving = leavingEl && leavingEl.id !== `screen-${route}` ? leavingEl : null;
+
+        if (leaving){
+          leaving.classList.remove("stage-enter", "stage-enter-active");
+          leaving.classList.add("stage-exit");
+          requestAnimationFrame(() => leaving.classList.add("stage-exit-active"));
+          setTimeout(() => {
+            leaving.classList.remove("active", "stage-exit", "stage-exit-active");
+          }, 220);
+        }
+
+        nextEl.classList.add("active", "stage-enter");
+        requestAnimationFrame(() => nextEl.classList.add("stage-enter-active"));
+        setTimeout(() => nextEl.classList.remove("stage-enter", "stage-enter-active"), 280);
+      }
+
+      function toast(title, body){
+        const el = $("#toast");
+        $("#toastTitle").textContent = title;
+        $("#toastBody").textContent = body;
+        el.classList.add("show");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => el.classList.remove("show"), 2200);
+      }
+
+      function selectedApplicant(){
+        return state.applicants.find((a) => a.id === state.selectedApplicantId) || null;
+      }
+
+      function recommendedApplicant(){
+        return state.applicants.find((a) => a.id === state.system.recommendedApplicantId) || null;
+      }
+
+      function updateHeader(){
+        const routeName = ({ home: "HOME", apply: "APPLY", dash: "DASHBOARD", quest: "TASK" })[state.route] ?? "HOME";
+        $("#hdrPill").textContent = `SCREEN: ${routeName}`;
+
+        const sel = selectedApplicant();
+        const rec = recommendedApplicant();
+        const subtitleBits = [];
+        subtitleBits.push(`Mode: ${routeName[0]}${routeName.slice(1).toLowerCase()}`);
+        if (sel) subtitleBits.push(`Selected: @${sel.handle}`);
+        if (rec) subtitleBits.push(`Recommended: @${rec.handle}`);
+        $("#hdrSubtitle").textContent = subtitleBits.join(" • ");
+
+        $("#navHome").disabled = state.route === "home";
+        $("#navApply").disabled = state.route === "apply";
+        $("#navDash").disabled = state.route === "dash" || !state.flow.hasCreatedApplicant;
+        $("#navQuest").disabled = state.route === "quest" || !state.flow.hasCreatedApplicant || !state.system.recommendedApplicantId;
+      }
+
+      function renderHome(){
+        const rec = recommendedApplicant();
+        const createdCount = state.applicants.length;
+        const lastEval = state.system.lastEvaluationAt ? new Date(state.system.lastEvaluationAt).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }) : "—";
+
+        const totalAvg = createdCount
+          ? state.applicants.reduce((s,a) => s + (a.teamFit ?? teamFitScore(a)), 0) / createdCount
+          : 0;
+
+        $("#homeKpis").innerHTML = [
+          kpi("Applicants", String(createdCount), "in pool"),
+          kpi("Last eval", lastEval, "engine run"),
+          kpi("Avg fit", `${fmtScore(totalAvg)}`, "score"),
+          kpi("Task", state.task.status, "quest status"),
+        ].join("");
+
+        $("#homeHint").textContent = rec
+          ? `Recommended candidate is @${rec.handle}. Continue to dashboard or task.`
+          : "No recommendation yet. Create an applicant to trigger evaluation.";
+
+        $("#systemStatus").innerHTML = `
+          <div class="stack">
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Applicants: ${state.applicants.length}</span>
+              <span class="badge">Selected: ${selectedApplicant() ? "@"+selectedApplicant().handle : "—"}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Quiz unlocked: ${state.quiz.unlocked ? "Yes" : "No"}</span>
+              <span class="badge">Quiz completed: ${state.quiz.completed ? "Yes" : "No"}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Task status: ${state.task.status}</span>
+              <span class="badge">Assigned: ${state.task.assignedToApplicantId ? "Yes" : "No"}</span>
+            </div>
+            <div class="divider"></div>
+            <div class="hintline">State object: <span style="color: rgba(255,255,255,.85); font-family: var(--mono);">applicants • selected applicant • quiz status • task status</span></div>
+          </div>
+        `;
+
+        $("#engineSnapshot").innerHTML = `
+          <div class="stack">
+            <div class="callout">
+              <div class="title">
+                <div>Decision Engine</div>
+                <div class="meta">Team Fit Score</div>
+              </div>
+              <div style="margin-top:10px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.45;">
+                Score = 0.45·Quiz + 0.25·Reliability + 0.20·Commits + 0.10·Task
+              </div>
+            </div>
+            <div class="divider"></div>
+            ${
+              rec
+                ? `<div class="row" style="justify-content:space-between;">
+                     <span class="badge rec">Recommended</span>
+                     <span class="badge">@${rec.handle}</span>
+                     <span class="badge">Fit: ${fmtScore(rec.teamFit ?? teamFitScore(rec))}</span>
+                   </div>`
+                : `<div class="hintline">No recommendation yet.</div>`
+            }
+          </div>
+        `;
+
+        $("#engineBadge").textContent = rec ? "ENGINE: ACTIVE" : "ENGINE: IDLE";
+      }
+
+      function kpi(label, value, hint){
+        return `
+          <div class="kpi">
+            <div class="label">${label}</div>
+            <div class="value">${value}</div>
+            <div class="hint">${hint}</div>
+          </div>
+        `;
+      }
+
+      function renderApply(){
+        $("#applyGateBadge").textContent = state.quiz.unlocked ? "GATE: QUIZ UNLOCKED" : "GATE: QUIZ LOCKED";
+        $("#quizBlock").style.display = state.quiz.unlocked ? "block" : "none";
+
+        $("#applyRules").innerHTML = `
+          <div class="stack">
+            <span class="badge warn">Mandatory flow enforced</span>
+            <div class="hintline">Home → Apply → Quiz → Applicant created → Dashboard → Recommended → Task → Accept → Committed</div>
+            <div class="divider"></div>
+            <div class="hintline">Quiz appears only after clicking <b>Apply</b>.</div>
+          </div>
+        `;
+
+        const preview = draftToApplicantPreview();
+        $("#applyPreview").innerHTML = `
+          <div class="stack">
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">@${preview.handle}</span>
+              <span class="badge">${preview.role}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Availability: ${preview.availability}</span>
+              <span class="badge">Experience: ${preview.experience}</span>
+            </div>
+            <div class="divider"></div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Reliability: ${fmtScore(preview.reliability)}</span>
+              <span class="badge">Commits: ${preview.commits}</span>
+            </div>
+            <div class="hintline">Team fit is computed after quiz submission.</div>
+          </div>
+        `;
+
+        renderQuiz();
+      }
+
+      function draftToApplicantPreview(){
+        const handle = (state.applyDraft.handle || "new-candidate").trim().replace(/\s+/g, "-").toLowerCase();
+        const role = state.applyDraft.role;
+        const availability = state.applyDraft.availability;
+        const experience = state.applyDraft.experience;
+        const reliability = reliabilityScore(availability, experience);
+        const commits = commitsEstimate(role, experience, handle);
+        return { handle, role, availability, experience, reliability, commits };
+      }
+
+      function quizAnsweredCount(){
+        return Object.keys(state.quiz.answers).length;
+      }
+
+      function renderQuiz(){
+        if (!state.quiz.unlocked) return;
+
+        const idx = state.quiz.index;
+        const total = QUIZ.length;
+        $("#quizProg").textContent = `Quiz • ${clamp(idx+1,1,total)}/${total}`;
+        $("#quizStatusBadge").textContent = state.quiz.completed ? `QUIZ: COMPLETE (${state.quiz.score})` : "QUIZ: IN PROGRESS";
+
+        const q = QUIZ[idx];
+        const chosen = state.quiz.answers[q.id] ?? null;
+
+        $("#quizBody").innerHTML = `
+          <div class="qtext">${q.text}</div>
+          <div class="choices">
+            ${q.choices.map((c) => {
+              const sel = chosen === c.id ? "sel" : "";
+              return `
+                <label class="choice ${sel}" data-choice="${c.id}">
+                  <input type="radio" name="quiz_${q.id}" ${chosen === c.id ? "checked" : ""} />
+                  <div>
+                    <div style="font-weight: 800;">${c.text}</div>
+                    <div style="margin-top:4px; color: rgba(255,255,255,.58); font-size: 12px; font-family: var(--mono);">Impact: +${c.pts} pts</div>
+                  </div>
+                </label>
+              `;
+            }).join("")}
+          </div>
+        `;
+
+        $$("#quizBody .choice").forEach((el) => {
+          el.addEventListener("click", () => {
+            const cid = el.getAttribute("data-choice");
+            state.quiz.answers[q.id] = cid;
+            state.quiz.completed = false;
+            toast("Quiz updated", `Answer recorded for Q${idx+1}.`);
+            renderApply();
+          });
+        });
+
+        $("#quizPrev").disabled = idx === 0;
+        $("#quizNext").disabled = idx >= total - 1;
+        $("#quizSubmit").disabled = quizAnsweredCount() < total;
+        $("#quizHint").textContent = quizAnsweredCount() < total
+          ? `Answered ${quizAnsweredCount()}/${total}.`
+          : "All questions answered. Submit to create the applicant.";
+      }
+
+      function computeQuizScore(){
+        let pts = 0;
+        for (const q of QUIZ){
+          const cid = state.quiz.answers[q.id];
+          const found = q.choices.find((c) => c.id === cid);
+          pts += found ? found.pts : 0;
+        }
+        // pts is 0..100 (5*20)
+        return clamp(pts, 0, 100);
+      }
+
+      function createApplicantFromDraft(){
+        const draft = draftToApplicantPreview();
+        const quizScore = computeQuizScore();
+        const id = uid();
+        const applicant = {
+          id,
+          handle: draft.handle || `candidate-${Math.random().toString(16).slice(2,6)}`,
+          role: draft.role,
+          availability: draft.availability,
+          experience: draft.experience,
+          quizScore,
+          reliability: draft.reliability,
+          commits: draft.commits,
+          tasks: 0,
+          createdAt: new Date().toISOString(),
+        };
+        state.applicants.unshift(applicant);
+        state.selectedApplicantId = id;
+        state.flow.hasCreatedApplicant = true;
+        state.quiz.completed = true;
+        state.quiz.score = quizScore;
+        state.quiz.unlocked = false; // reset gate after submission
+        state.quiz.index = 0;
+        state.quiz.answers = {};
+
+        logEvent("Applicant created", `@${applicant.handle} (${applicant.role}) submitted with quiz score ${quizScore}.`);
+        toast("Application submitted", `@${applicant.handle} added to the pool.`);
+      }
+
+      function renderDash(){
+        evaluateApplicants();
+        const rec = recommendedApplicant();
+        const total = state.applicants.length;
+        const avgFit = total ? state.applicants.reduce((s,a) => s + (a.teamFit ?? teamFitScore(a)), 0) / total : 0;
+
+        const bestFit = rec ? (rec.teamFit ?? teamFitScore(rec)) : 0;
+        $("#dashKpis").innerHTML = [
+          kpi("Applicants", String(total), "in pool"),
+          kpi("Recommended", rec ? "@"+rec.handle : "—", "best candidate"),
+          kpi("Best fit", rec ? String(fmtScore(bestFit)) : "—", "score"),
+          kpi("Avg fit", String(fmtScore(avgFit)), "score"),
+        ].join("");
+
+        $("#dashEvalBadge").textContent = rec ? "EVALUATION: COMPLETE" : "EVALUATION: EMPTY";
+
+        const tbody = $("#applicantsTbody");
+        tbody.innerHTML = "";
+        for (const a of state.applicants){
+          const isRec = a.id === state.system.recommendedApplicantId;
+          const isSel = a.id === state.selectedApplicantId;
+          const relBadge = badgeForReliability(a.reliability);
+          const tr = document.createElement("tr");
+          tr.style.cursor = "pointer";
+          tr.style.background = isSel ? "rgba(124,92,255,.08)" : (isRec ? "rgba(57,217,138,.06)" : "transparent");
+          tr.innerHTML = `
+            <td>
+              <div class="row" style="gap:8px;">
+                <span class="badge ${isRec ? "rec" : ""}">@${a.handle}</span>
+                ${isRec ? `<span class="badge rec">Recommended</span>` : ``}
+              </div>
+            </td>
+            <td><span class="badge">${a.role}</span></td>
+            <td><span class="badge">${a.quizScore}</span></td>
+            <td><span class="badge ${relBadge.cls}">${fmtScore(a.reliability)} (${relBadge.label})</span></td>
+            <td><span class="badge">${a.commits}</span></td>
+            <td><span class="badge">${a.tasks}</span></td>
+            <td><span class="badge">${fmtScore(a.teamFit ?? teamFitScore(a))}</span></td>
+            <td>
+              ${a.id === state.task.assignedToApplicantId
+                ? `<span class="badge ${state.task.status === "Committed" ? "good" : "warn"}">Task: ${state.task.status}</span>`
+                : `<span class="badge">—</span>`
+              }
+            </td>
+          `;
+          tr.addEventListener("click", () => {
+            state.selectedApplicantId = a.id;
+            toast("Selected", `@${a.handle} selected.`);
+            render();
+          });
+          tbody.appendChild(tr);
+        }
+
+        const sel = selectedApplicant();
+        $("#selBadge").textContent = sel ? `@${sel.handle}` : "NONE";
+        $("#selectedDetails").innerHTML = sel ? detailsBlock(sel) : `<div class="hintline">No applicant selected.</div>`;
+
+        $("#recommendationPanel").innerHTML = rec
+          ? `
+              <div class="stack">
+                <div class="row" style="justify-content:space-between;">
+                  <span class="badge rec">@${rec.handle}</span>
+                  <span class="badge">${rec.role}</span>
+                  <span class="badge rec">Fit: ${fmtScore(rec.teamFit ?? teamFitScore(rec))}</span>
+                </div>
+                <div class="divider"></div>
+                ${scoreBreakdown(rec)}
+                <div class="divider"></div>
+                <div class="hintline">Selecting a different applicant changes focus, but the engine still recommends the best score.</div>
+              </div>
+            `
+          : `<div class="hintline">No applicants yet.</div>`;
+
+        $("#dashGoTask").disabled = !state.system.recommendedApplicantId;
+      }
+
+      function detailsBlock(a){
+        const relBadge = badgeForReliability(a.reliability);
+        const tf = a.teamFit ?? teamFitScore(a);
+        const taskPerf = taskPerformanceScore(a.id);
+        return `
+          <div class="stack">
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">@${a.handle}</span>
+              <span class="badge">${a.role}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Availability: ${a.availability}</span>
+              <span class="badge">Experience: ${a.experience}</span>
+            </div>
+            <div class="divider"></div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Quiz: ${a.quizScore}</span>
+              <span class="badge ${relBadge.cls}">Reliability: ${fmtScore(a.reliability)}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Commits: ${a.commits}</span>
+              <span class="badge">Tasks: ${a.tasks}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Task perf: ${taskPerf}</span>
+              <span class="badge rec">Team Fit: ${fmtScore(tf)}</span>
+            </div>
+            <div class="divider"></div>
+            ${scoreBreakdown(a)}
+          </div>
+        `;
+      }
+
+      function scoreBreakdown(a){
+        const quiz = clamp(a.quizScore ?? 0, 0, 100);
+        const rel = clamp(a.reliability ?? 0, 0, 100);
+        const com = clamp(a.commits ?? 0, 0, 100);
+        const task = clamp(taskPerformanceScore(a.id), 0, 100);
+        const parts = [
+          { label: "Quiz (45%)", v: 0.45 * quiz, raw: quiz },
+          { label: "Reliability (25%)", v: 0.25 * rel, raw: rel },
+          { label: "Commits (20%)", v: 0.20 * com, raw: com },
+          { label: "Task (10%)", v: 0.10 * task, raw: task },
+        ];
+        return `
+          <div class="stack">
+            <div class="hintline">Score breakdown</div>
+            ${parts.map((p) => `
+              <div class="row" style="justify-content:space-between;">
+                <span class="badge">${p.label}</span>
+                <span class="badge">raw: ${fmtScore(p.raw)}</span>
+                <span class="badge rec">+${fmtScore(p.v)}</span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function renderQuest(){
+        const rec = recommendedApplicant();
+        const assigned = state.task.assignedToApplicantId
+          ? state.applicants.find((a) => a.id === state.task.assignedToApplicantId)
+          : null;
+
+        const target = assigned || rec || null;
+
+        $("#taskBadge").textContent = `TASK: ${state.task.status.toUpperCase()}`;
+        $("#acceptTaskBtn").disabled = !target || state.task.status === "Committed";
+        $("#taskHint").textContent = !target
+          ? "No recommended applicant yet. Go to Dashboard and evaluate."
+          : state.task.status === "Committed"
+            ? `Committed: @${target.handle} is now assigned to the quest.`
+            : `Offer the quest to @${target.handle} and accept to commit.`;
+
+        const task = state.task.assignedTask || {
+          id: "QST-000",
+          title: "No task loaded",
+          detail: "Seed a task to proceed.",
+          checklist: [],
+        };
+
+        $("#taskCard").innerHTML = `
+          <div class="title">
+            <div>${task.title}</div>
+            <div class="meta">${task.id}</div>
+          </div>
+          <div style="margin-top:10px; color: rgba(255,255,255,.74); line-height:1.5; font-size: 13px;">
+            ${task.detail}
+          </div>
+          <div class="divider"></div>
+          <div class="row" style="justify-content:space-between;">
+            <span class="badge">Assigned to</span>
+            <span class="badge">${target ? "@"+target.handle : "—"}</span>
+            <span class="badge ${state.task.status === "Committed" ? "good" : "warn"}">${state.task.status}</span>
+          </div>
+          <div style="height:10px;"></div>
+          <div class="hintline">Checklist</div>
+          <div style="margin-top:8px; display:grid; gap:8px;">
+            ${task.checklist.map((c) => `
+              <div class="badge" style="border-radius: 14px; justify-content:space-between;">
+                <span>${c}</span>
+                <span style="opacity:.7;">•</span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+
+        $("#commitLog").innerHTML = state.system.log.length
+          ? state.system.log.map((e) => `
+              <div class="badge" style="border-radius: 14px; display:block; margin-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; gap:10px;">
+                  <span style="font-weight: 900;">${e.title}</span>
+                  <span style="opacity:.7;">${e.at}</span>
+                </div>
+                <div style="margin-top:6px; opacity:.78; line-height:1.35;">${e.body}</div>
+              </div>
+            `).join("")
+          : `<div class="hintline">No events.</div>`;
+
+        const targetFit = target ? fmtScore(target.teamFit ?? teamFitScore(target)) : "—";
+        $("#taskMetrics").innerHTML = `
+          <div class="stack">
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Recommended</span>
+              <span class="badge">${rec ? "@"+rec.handle : "—"}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Target</span>
+              <span class="badge">${target ? "@"+target.handle : "—"}</span>
+            </div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Task status</span>
+              <span class="badge ${state.task.status === "Committed" ? "good" : "warn"}">${state.task.status}</span>
+            </div>
+            <div class="divider"></div>
+            <div class="row" style="justify-content:space-between;">
+              <span class="badge">Team Fit</span>
+              <span class="badge rec">${targetFit}</span>
+            </div>
+            <div class="hintline">Accepting the task boosts the target’s Task component (10% weight).</div>
+          </div>
+        `;
+      }
+
+      function render(){
+        updateHeader();
+
+        // show the correct screen (base state)
+        $$(".screen").forEach((s) => {
+          const isActive = s.id === `screen-${state.route}`;
+          if (isActive) s.classList.add("active");
+          else if (!s.classList.contains("stage-exit")) s.classList.remove("active");
+        });
+
+        renderHome();
+        renderApply();
+        renderDash();
+        renderQuest();
+
+        $("#sysBadge").textContent = state.system.recommendedApplicantId ? "STATE: RUNNING" : "STATE: READY";
+      }
+
+      function bind(){
+        $("#navHome").addEventListener("click", () => setRoute("home"));
+        $("#navApply").addEventListener("click", () => setRoute("apply"));
+        $("#navDash").addEventListener("click", () => setRoute("dash"));
+        $("#navQuest").addEventListener("click", () => setRoute("quest"));
+
+        $("#homeGoApply").addEventListener("click", () => setRoute("apply"));
+        $("#homeApplyNow").addEventListener("click", () => {
+          setRoute("apply");
+          setTimeout(() => $("#unlockQuizBtn").focus(), 50);
+        });
+
+        $("#applyBackHome").addEventListener("click", () => setRoute("home"));
+        $("#dashBackApply").addEventListener("click", () => setRoute("apply"));
+        $("#taskBackDash").addEventListener("click", () => setRoute("dash"));
+
+        $("#dashReeval").addEventListener("click", () => {
+          evaluateApplicants();
+          logEvent("Evaluation", "Decision engine re-evaluated applicants.");
+          toast("Evaluated", "Recommendation updated.");
+          render();
+        });
+
+        $("#dashGoTask").addEventListener("click", () => {
+          if (!state.system.recommendedApplicantId) return;
+          setRoute("quest");
+        });
+
+        // draft inputs
+        $("#appName").addEventListener("input", (e) => {
+          state.applyDraft.handle = e.target.value;
+          renderApply();
+        });
+        $("#roleSel").addEventListener("change", (e) => {
+          state.applyDraft.role = e.target.value;
+          renderApply();
+        });
+        $("#availSel").addEventListener("change", (e) => {
+          state.applyDraft.availability = e.target.value;
+          renderApply();
+        });
+        $("#expSel").addEventListener("change", (e) => {
+          state.applyDraft.experience = e.target.value;
+          renderApply();
+        });
+
+        // unlock quiz (Apply button)
+        $("#unlockQuizBtn").addEventListener("click", () => {
+          const handle = ($("#appName").value || "").trim();
+          if (!handle){
+            toast("Missing handle", "Add an applicant handle to continue.");
+            $("#appName").focus();
+            return;
+          }
+          state.applyDraft.handle = handle;
+          state.quiz.unlocked = true;
+          state.quiz.completed = false;
+          state.quiz.index = 0;
+          state.quiz.answers = {};
+          logEvent("Gate opened", `Quiz unlocked for @${draftToApplicantPreview().handle}.`);
+          toast("Quiz unlocked", "Complete the quiz to submit the application.");
+          render();
+          setTimeout(() => $("#quizNext").focus(), 80);
+        });
+
+        $("#quizPrev").addEventListener("click", () => {
+          state.quiz.index = clamp(state.quiz.index - 1, 0, QUIZ.length - 1);
+          renderApply();
+        });
+        $("#quizNext").addEventListener("click", () => {
+          state.quiz.index = clamp(state.quiz.index + 1, 0, QUIZ.length - 1);
+          renderApply();
+        });
+
+        $("#quizSubmit").addEventListener("click", () => {
+          if (quizAnsweredCount() < QUIZ.length) return;
+          state.quiz.score = computeQuizScore();
+          createApplicantFromDraft();
+          evaluateApplicants();
+
+          // Offer task to recommended automatically
+          const rec = recommendedApplicant();
+          if (rec){
+            state.task.status = "Offered";
+            state.task.assignedToApplicantId = rec.id;
+            logEvent("Quest offered", `Task offered to recommended @${rec.handle}.`);
+          }
+          render();
+          setRoute("dash");
+        });
+
+        $("#acceptTaskBtn").addEventListener("click", () => {
+          const rec = recommendedApplicant();
+          const assigned = state.task.assignedToApplicantId
+            ? state.applicants.find((a) => a.id === state.task.assignedToApplicantId)
+            : null;
+          const target = assigned || rec;
+          if (!target) return;
+
+          state.task.assignedToApplicantId = target.id;
+          state.selectedApplicantId = target.id;
+          state.task.status = "Committed";
+          const a = state.applicants.find((x) => x.id === target.id);
+          if (a) a.tasks = (a.tasks || 0) + 1;
+          evaluateApplicants();
+          logEvent("Task committed", `@${target.handle} accepted the quest. Status → Committed.`);
+          toast("Committed", `Task accepted by @${target.handle}.`);
+          render();
+        });
+      }
+
+      // init
+      seedApplicants();
+      bind();
+      render();
+      animateTo("home");
+    </script>
+  </body>
+</html>
